@@ -52,6 +52,7 @@ const {
     usuariosPost,
     usuariosPut,
     usuariosDelete,
+    usuariosSignin,
 } = require("../controllers/usuarios");
 
 const router = Router();
@@ -61,8 +62,10 @@ router.get("/", usuariosGet);
 
 router.post("/", usuariosPost);
 
-router.put("/:id", usuariosPut);  //para pasarle el paraámetro variable
-
+router.put("/", usuariosPut);  //para pasarle el paraámetro variable
+//:id
 router.delete("/", usuariosDelete);
+
+router.post("/signin", usuariosSignin);
 
 module.exports = router;
