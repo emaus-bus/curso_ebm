@@ -159,15 +159,42 @@ const usuariosSignin = async(req = request, res = response) => {
 
 
 
-const usuariosPut = (req = request, res = response) => {
-    const { id } = req.params;
-    res.status(400).json({msg :  "Hola a todos desde - PUT - con express", id });
+const usuariosPut = async(req = request, res = response) => {
+    const { email } = req.query;
+    const { nombre, status} = req.body;
     
+    let conn;
+
+    try {
+        conn = await pool.getConnection();
+
+        const usuarios = await conn.query(usuariosQueries.updateUsuario, [nombre, status, email]);
+        
+        res.json({usuarios});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({msg: "Por favor contacte al administrador", error});
+    } finally {
+        if (conn) conn.end();
+    }
 };
 
-const usuariosDelete = (req = request, res = response) => {
-    const { usuario, password } = req.query;
-    res.status(500).json({msg : "Hola a todos desde - DELETE - con express", usuario , password });
+const usuariosDelete = async(req = request, res = response) => {
+    const { email } = req.query;
+
+    let conn;
+
+    try {
+        conn = await pool.getConnection();
+        const usuarios = await conn.query(usuariosQueries.deleteUsuario,[email,]);
+        res.json({usuarios});
+    }catch (error) {
+        console.log(error);
+        res.status(500).json({msg : "Por favor contacte al Administrador.", error });
+    } finally {
+        if (conn) conn.end();
+    }
+    
 };
 //Tarea: Hacer un Ednpint para actualizar la contraseña
 //Hacer la consulta 
