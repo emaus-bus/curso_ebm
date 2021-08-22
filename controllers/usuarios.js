@@ -106,7 +106,7 @@ const usuariosPost = async(req = request, res = response) => {
     try{
         //
         const salt = bcryptjs.genSaltSync();//
-        const passwordHash = bcryptjs.hashSync(password,salt);//
+        const passwordHash = bcryptjs.hashSync(password,salt);/////////////////////////////////////////////7
         
         conn = await pool.getConnection();
         const usuarios = await conn.query(usuariosQueries.insertUsuario,[
@@ -132,7 +132,7 @@ const usuariosSignin = async(req = request, res = response) => {
     try {
         conn = await pool. getConnection();
 
-        const usuarios = await conn. query(usuariosQueries.getUsuarioByEmail, [email]);
+        const usuarios = await conn.query(usuariosQueries.getUsuarioByEmail, [email]);
 
         if (usuarios.length === 0){
             res.status(404).json({msg:`No se encontró el usuario ${email}.`});
@@ -147,10 +147,10 @@ const usuariosSignin = async(req = request, res = response) => {
             return;
         }
 
-        res.json({msg : "Inicio de sesión satisfactorio."})
+        res.json({msg : "Inicio de sesión satisfactorio."});  ///
     }catch (error){
         console.log(error);
-        res.status(500),json({msg:"por favor contacte al administrador.",error});
+        res.status(500),json({msg:"Por favor contacte al administrador.",error});
     } finally {
         if (conn) conn.end();
     }
@@ -199,4 +199,52 @@ const usuariosDelete = async(req = request, res = response) => {
 //Tarea: Hacer un Ednpint para actualizar la contraseña
 //Hacer la consulta 
 //contraseña actual y contraseña nueva
-module.exports = { usuariosGet, usuariosPost, usuariosPut, usuariosDelete, usuariosSignin,};
+
+
+const usuariosValidation = async(req = request, res = response) => {
+    const { email, password } = req.body;
+    //const { password } = re.query;
+    let { newpass } = req.query;
+    let conn;
+
+    try {
+        conn = await pool. getConnection();
+
+        const usuarios = await conn.query(usuariosQueries.validaUsuario, [email,]);
+
+        if (usuarios.length === 0){
+            res.status(404).json({msg:`El usuario o la contraseña no coinciden ${email}.`});
+            return;
+        }
+        
+        //revisamos que la contraseña coincide               //hash
+        const passwordValido = bcryptjs.compareSync(password, usuarios[0].password);
+        console.log(`${usuarios[0].password}  ok - si coincide`);// ok - si coincide
+        //res.status(201).json({msg:"coincide el password"});
+
+        if (!passwordValido){               //no ser tan explicitos en cual es el error
+            res.status(401).json({msg : "`El usuario o la contraseña no coinciden." });
+            return;
+        }
+        //ciframos
+        const salt = bcryptjs.genSaltSync();//
+        const passwordHash = bcryptjs.hashSync(newpass,salt);/////////////////////////////////////////////7
+        //registramos la nueva contraseña
+        const usuarios2 = await conn.query(usuariosQueries.updatePass, [passwordHash, email]);
+        
+        res.json({msg : "Contraseña actualizada.  [ [ [ E. Mora 2021 ] ] ] "});
+        /////////console.log(usuarios2[0].newpass);//  coincide?
+        console.log("Gracias...");//  coincide?
+        if (conn) conn.end();
+        return;
+    }catch (error){
+        console.log(error);
+        res.status(500),json({msg:"Por favor contacte al administrador.",error});
+    } finally {
+        if (conn) conn.end();
+    }
+};
+//
+
+
+module.exports = { usuariosGet, usuariosPost, usuariosPut, usuariosDelete, usuariosSignin, usuariosValidation,};
